@@ -15,6 +15,7 @@ import {
 } from 'react-icons/md';
 import Slider from '@material-ui/core/Slider';
 import Grid from '@material-ui/core/Grid';
+import CircularProgress from '@material-ui/core/CircularProgress';
 import useHover from '@react-hook/hover'
 
 
@@ -119,14 +120,16 @@ episode:  {
     display: 'flex',
     alignItems: 'center',
     margin: '2px 0 10px',
-    padding: '2px 5px', 'justify-content': 'center'
+    padding: '2px 5px', 'justify-content': 'center', cursor:'pointer'
     }
 
 }));
 
 const durationToStr= (dur: number) => {
-return Math.floor(dur/60) +":" + dur %60;
-
+let n = (Math.floor(dur/60)) +":";
+let b  = (dur %60).toString();
+ b = b.length < 2 ? ('0' + b): b 
+ return n+b;
 }
 const  setTitle= (title: string, maxlen : number) =>{
 if(title.length > maxlen) return title.slice(0, maxlen - 6)+'...';
@@ -163,13 +166,25 @@ const Player: React.FunctionComponent<PlayerProps> = ({ backgroundColor = "#ffff
   color = "#000000", podcast = DefaultPodCast }) => {
   const classes = useStyles();
   const [expanded, setExpanded] = React.useState(false);
-  const [value, setValue] = React.useState(30);
+  const [value, setValue] = React.useState(0);
   let [playlist, setPlaylist] = React.useState<PlayerAudio[]>([]);
+    const [elapsed, setElapsed] = React.useState(0);
+    let [play, setPlay] = React.useState<PlayerAudio>();
   const ref = React.useRef<HTMLAudioElement>(null);
+   const [mError, setMError] = React.useState("");
   const parser = new Parser();
     const init = (): void => {
     (async () => {
-        
+        setElapsed(0);
+        setPlaylist([])
+        setPlay(undefined);
+        let r = ref.current;
+         setExpanded(false);
+           setMError("" )
+        if(r)
+       { r.pause()
+         r.currentTime =0
+        }
       if(podcast.image) { 
       try{
       let feed = await parser.parseURL(podcast.rss);
@@ -184,10 +199,11 @@ const Player: React.FunctionComponent<PlayerProps> = ({ backgroundColor = "#ffff
     //  letitem.enclosure?.url)
     }));
     setPlaylist(n);
-    setExpanded(true)
+    setExpanded(true);
+    
     }
     catch(err){
-    console.log(err)
+    setMError("Error loading Rss feed" )
     }
       }
       /*  setPodcasts(ret.data); let parser = new Parser();
@@ -207,12 +223,23 @@ const Player: React.FunctionComponent<PlayerProps> = ({ backgroundColor = "#ffff
   React.useEffect( ()=> {
 init()
   },[podcast])
-  /* const handleChange = (event, newValue) => {
-     setValue(newValue);
-   };
- 
- */
-
+  React.useEffect( ()=> {
+if(play){ console.log("yayy");
+let r = ref.current
+if(r){
+r.src = play.src;
+      r.addEventListener("timeupdate", ()=> {
+      let e = (Math.floor(r?.currentTime || 0 ))
+      
+      setElapsed(e)
+     if(play) setValue((e/play.duration)*100)
+      });
+      r.addEventListener("loadeddata", ()=>{
+  if( r && (r.readyState >= 2)) r.play()
+      });
+}
+}
+  },[play])
 
 const renderPlayList = () =>{
 
@@ -247,13 +274,15 @@ const renderPlayList = () =>{
         <AccordionDetails style={{display:'block'}}>
   {playlist.map((p,i)=>  {
   return (
-  <Episode episode={p} className={classes.episode} key={'episode'+i} backgroundColor={backgroundColor} color={color} />
+  <Episode episode={p} className={classes.episode} key={'episode'+i} backgroundColor={backgroundColor} 
+  color={color} onClick={setPlay}  />
   )
   })
   
   
   
   }
+
         </AccordionDetails>
         
         
@@ -262,7 +291,15 @@ const renderPlayList = () =>{
   );
   
   if(podcast) return (
-  <Card className={classes.root} style={{ backgroundColor, color }} >
+   <Accordion className={classes.acc}>
+       
+        <AccordionSummary
+          
+          className={classes.acb}
+          aria-controls="panel1a-content"
+          id="panel1a-header"
+        >
+         <Card className={classes.root} style={{ backgroundColor, color }} >
     <div className={classes.details}> <CardContent className={classes.content}>
           <Typography component="h5" variant="h5">
          {setTitle(podcast.publisher_original, 25)}
@@ -279,13 +316,37 @@ const renderPlayList = () =>{
       title={podcast.title_original}
     />
   </Card>
+  </AccordionSummary>
+        <AccordionDetails style={{display:'block'}}>
+  {playlist.map((p,i)=>  {
+  return (
+  <Episode episode={p} className={classes.episode} key={'episode'+i} backgroundColor={backgroundColor} 
+  color={color} onClick={setPlay}  />
+  )
+  })
+  
+  
+  
+  }
+  <div style={{textAlign:"center",color}}>
+  <CircularProgress color="inherit"  />
+   </div>
+        </AccordionDetails>
+        
+        
+  </Accordion>
   )
   return <div/>
   }
 
   return (
     <div className={classes.main} style={{ backgroundColor, color }}>
+
     {renderPlayList()}
+               <Typography style={{fontWeight: 'bold', textAlign: 'center' }}>
+   {setTitle(play?.title || "No episode", 35)}
+    </Typography>
+    {!!mError.length && (  <Typography style={{ textAlign: 'center' }} variant="subtitle1">{mError}</Typography> )}
       <div className={classes.controls} style={{  color }}>
         <IconButton style={{  color }}>
           <SkipPreviousIcon />
@@ -305,16 +366,26 @@ const renderPlayList = () =>{
       <Grid container spacing={2} style={{
         alignItems: 'center'
       }}>
+      
+ 
         <Grid item>
-          <span>{value +':00'}</span>
+          <span>{durationToStr(elapsed)}</span>
         </Grid>
         <Grid item xs>
-          <Slider value={value} style={{  color }} onChange={(event, newValue) => {
-            setValue(Number(newValue));
+          <Slider value={value} style={{  color }} disabled={play?.src ? false : true} onChange={(event, newValue) => {
+         let r = ref.current;
+         let num = Number(newValue)
+           if(r && play) {
+           r.pause()
+          let n = (Math.round((num / 100) * play.duration))
+          r.currentTime = n;
+          r.play()
+           }
+           setValue(num);
           }} />
         </Grid>
         <Grid item>
-          <span>0:00</span>
+          <span>{durationToStr(play?.duration|| 0)}</span>
         </Grid>
       </Grid>
       <audio ref={ref}>
