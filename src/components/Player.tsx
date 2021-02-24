@@ -189,7 +189,7 @@ const Player: React.FunctionComponent<PlayerProps> = ({ backgroundColor = "#ffff
       try{
       let feed = await parser.parseURL(podcast.rss);
       console.log(feed.items)
-         let n: PlayerAudio[]= (feed.items.filter(item => !!item.enclosure && !!item.title && !!item.itunes).map(item => {
+         let n: PlayerAudio[]= (feed.items.slice(0,10).filter(item => !!item.enclosure && !!item.title && !!item.itunes).map(item => {
          return {src: item.enclosure?.url || 'none',
          typ:item.enclosure?.type|| 'none',
          title: item.title || 'none',
@@ -271,7 +271,7 @@ const renderPlayList = () =>{
     />
   </Card>
   </AccordionSummary>
-        <AccordionDetails style={{display:'block'}}>
+        <AccordionDetails style={{display:'block', overflowY:'scroll', maxHeight:'300px'}}>
   {playlist.map((p,i)=>  {
   return (
   <Episode episode={p} className={classes.episode} key={'episode'+i} backgroundColor={backgroundColor} 
@@ -317,7 +317,7 @@ const renderPlayList = () =>{
     />
   </Card>
   </AccordionSummary>
-        <AccordionDetails style={{display:'block'}}>
+        <AccordionDetails style={{display:'block', overflowY:'scroll', maxHeight:'300px'}}>
   {playlist.map((p,i)=>  {
   return (
   <Episode episode={p} className={classes.episode} key={'episode'+i} backgroundColor={backgroundColor} 
