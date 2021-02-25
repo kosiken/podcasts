@@ -3,11 +3,13 @@ align-items: center;
 justify-content: center;
 }
 
-.container {display: flex;
--ms-flex-wrap: wrap;
-flex-wrap: wrap;
--ms-flex-pack: center;
-justify-content: center;width: 85%;
-margin: 0 auto;
+body: {
+overflow: hidden
+
+}
+
+.container {
+display: flex;
+width: 100vw;
 }
 

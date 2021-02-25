@@ -5,10 +5,12 @@ import CardContent from '@material-ui/core/CardContent';
 import CardMedia from '@material-ui/core/CardMedia';
 import IconButton from '@material-ui/core/IconButton';
 import Typography from '@material-ui/core/Typography';
-
 import { Podcast } from '../cast';
 import { makeStyles, useTheme } from '@material-ui/core/styles';
-
+import {  useDispatch } from 'react-redux';
+import { AppState, State, Action } from "../store"
+import { PodcastsApiInstance } from '../api';
+import { Dispatch } from 'redux'; 
 
 type PodcastViewProps = {
   podcast: Podcast;
@@ -49,12 +51,14 @@ const useStyles = makeStyles((theme) => ({
 
 const PodcastView: React.FunctionComponent<PodcastViewProps> = ({ podcast, key, onClick= ()=>{} }) => {
   const classes = useStyles();
+  const dispatch = useDispatch<Dispatch<Action>>()
   const [backgroundColor, setBackgroundColor] = useState("#ffffff");
   const [color, setColor] = useState("#000000");
   const [altColor, setAltColor] = useState("#cccccc");
   useEffect(() => {
     const image = new Image();
     if (podcast.image) {
+    image.crossOrigin = "Anonymous"
       image.src = podcast.image;
       image.onload = () => {
         let colors = getImagePalette(image);
@@ -68,7 +72,8 @@ const PodcastView: React.FunctionComponent<PodcastViewProps> = ({ podcast, key, 
 
   return (
     <Card className={classes.root} style={{ backgroundColor, color }} onClick={() => {
-    onClick(podcast,color,backgroundColor)
+   dispatch({type:"theme", backgroundColor, color })
+   dispatch({ type: "select", podcast})
     } }>
       <img className={classes.cover} src={podcast.image} alt={podcast.title_original} />
       <CardContent>
