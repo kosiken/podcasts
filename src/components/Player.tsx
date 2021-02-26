@@ -1,5 +1,5 @@
 import React from 'react';
-import Parser from 'rss-parser';
+
 import { Podcast,PlayerAudio } from '../cast';
 import { makeStyles } from '@material-ui/core/styles';
 import Accordion from '@material-ui/core/Accordion';
@@ -9,19 +9,21 @@ import Card from '@material-ui/core/Card';
 import CardContent from '@material-ui/core/CardContent';
 import CardMedia from '@material-ui/core/CardMedia';
 import IconButton from '@material-ui/core/IconButton';
+import { Helmet } from 'react-helmet';
 import Typography from '@material-ui/core/Typography';
 import {
-  MdPause as PauseIcon, MdSkipNext as SkipNextIcon, MdSkipPrevious as SkipPreviousIcon, MdPlayArrow as PlayArrowIcon
+  MdArrowBack as Back, MdPause as PauseIcon, MdSkipNext as SkipNextIcon, MdSkipPrevious as SkipPreviousIcon, MdPlayArrow as PlayArrowIcon
 } from 'react-icons/md';
 import Slider from '@material-ui/core/Slider';
 import Grid from '@material-ui/core/Grid';
 import CircularProgress from '@material-ui/core/CircularProgress';
-import LinearProgress from '@material-ui/core/LinearProgress';
+
 import Episode from './Episode';
 import useDebounce from '../useDebounce'
 import {PodcastsApiInstance} from '../api';import { setTitle, durationToStr } from '../utils';
-import { useSelector  } from 'react-redux';
-import {AppState ,State} from "../store"
+import { useSelector, useDispatch   } from 'react-redux';
+import { Dispatch } from 'redux';
+import {AppState, Action, State} from "../store"
    
 type PlayerProps = {
   podcast?: Podcast;
@@ -101,41 +103,42 @@ width:"30%"
 
 
 
+/*
+    const Episodes:PlayerAudio[] = [
+    {
+    src: "aiffyep2.mp3",
+    typ: "audio/mpeg",
+    title: "How to Stop Being Judgemental - Episode 3",
+    duration: 352,
+    episode:3
+    },
 
-const Episodes:PlayerAudio[] = [
-{
-src: "aiffyep2.mp3",
-typ: "audio/mpeg",
-title: "How to Stop Being Judgemental - Episode 3",
-duration: 352,
-episode:3
-},
+    {
+    src: "aiffyep2.mp3",
+    typ: "audio/mpeg",
+    title: "How to Stop Being Judgemental - Episode 3",
+    duration: 352,
+    episode:3
+    },
+    {
+    src: "aiffyep2.mp3",
+    typ: "audio/mpeg",
+    title: "How to Stop Being Judgemental - Episode 3",
+    duration: 352,
+    episode:3
+    }
+    ]
 
-{
-src: "aiffyep2.mp3",
-typ: "audio/mpeg",
-title: "How to Stop Being Judgemental - Episode 3",
-duration: 352,
-episode:3
-},
-{
-src: "aiffyep2.mp3",
-typ: "audio/mpeg",
-title: "How to Stop Being Judgemental - Episode 3",
-duration: 352,
-episode:3
-}
-]
-
-
+*/
 
 const Player: React.FunctionComponent<PlayerProps> = () => {
   const classes = useStyles();
   const [expanded, setExpanded] = React.useState(false);
- const {backgroundColor, color, podcast} = useSelector<AppState, State>((state)=> {
+   const dispatch = useDispatch<Dispatch<Action>>()
+ const {backgroundColor, color, podcast, page} = useSelector<AppState, State>((state)=> {
    return state.app
  })
-   let [loading, setLoad] = React.useState(false);
+
   const [isPlaying, setPlaying] = React.useState(false);
   const [shouldPlay, isSetting] = useDebounce(isPlaying,200)
   const [mIndex, setIndex] = React.useState(0);
@@ -145,8 +148,9 @@ const Player: React.FunctionComponent<PlayerProps> = () => {
   let [play, setPlay] = React.useState<PlayerAudio>();
   const ref = React.useRef<HTMLAudioElement>(null);
   const [mError, setMError] = React.useState("");
-  const parser = new Parser();
-  // const [CurrentIcon, setCurrentIcon] = React.useState(<PlayArrowIcon/>)
+
+
+ 
   const init = (): void => {
     (async () => {
       setElapsed(0);
@@ -156,23 +160,24 @@ const Player: React.FunctionComponent<PlayerProps> = () => {
       setExpanded(false);
       setPlaying(false);
       setMError("")
+ 
       if (r) {
         r.pause()
         r.currentTime = 0
       }
-      if(podcast == undefined) return;
+      if(podcast === undefined) return;
       if (podcast.image) {
         try {
          
           let n: PlayerAudio[];
-       //   n = await PodcastsApiInstance.getAudio(podcast.rss);
-         // setPlaylist(n);
-        //  setExpanded(true);
+          n = await PodcastsApiInstance.getAudio(podcast.rss);
+         setPlaylist(n);
+          setExpanded(true);
 
         }
         catch (err) {
         console.log(err)
-          setMError("Error loading Rss feed")
+          setMError("Error loading podcast")
         }
       }
 
@@ -192,16 +197,17 @@ const Player: React.FunctionComponent<PlayerProps> = () => {
     }
     if (!isPlaying) r.pause();
 
-
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isPlaying])
 
   React.useEffect(() => {
     init()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [podcast])
   
   React.useEffect(() => {
     if (play) {
-      console.log("yayy");
+     
       let r = ref.current
       if (r) {
         r.pause();
@@ -232,7 +238,7 @@ const Player: React.FunctionComponent<PlayerProps> = () => {
       
     setPlay(audio)}
 
-
+// eslint-disable-next-line react-hooks/exhaustive-deps
   }, [mIndex])
   
   
@@ -243,7 +249,9 @@ console.log("88")
   
   const renderPod = () => {
       if (podcast) return (
-       <React.Fragment>     <Accordion className={classes.acc}>
+       <React.Fragment>  
+  
+          <Accordion className={classes.acc}>
 
         <AccordionSummary
 
@@ -298,7 +306,18 @@ console.log("88")
   
   }
   return (
-    <div className={classes.main} style={{ backgroundColor, color }}>
+    <div className={"main " + (page === "player" ? "" : "none") } style={{ backgroundColor, color }}>
+       <Helmet>
+         <title>{play?.title || podcast?.title_original || "Podcasts" } </title>
+       </Helmet>
+  
+    <div id="back">
+    <IconButton style={{ color}}  onClick={()=> {
+       dispatch({ type: "close"})
+    
+    
+    }} > <Back/> </IconButton>
+    </div >
     <div style={{height:"75%"}}>
 {renderPod()}
       </div>

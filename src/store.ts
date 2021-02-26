@@ -10,7 +10,8 @@ export interface State {
     backgroundColor: string;
     isLoading: boolean;
     error?: string;
-    podcast?: Podcast
+    podcast?: Podcast;
+    page: string;
 
 }
 
@@ -18,6 +19,7 @@ const InitialState: State = {
     podcasts: [],
     color: "#000000", backgroundColor: "#fff0ff",
     isLoading: true,
+    page: "grid"
 
 }
 
@@ -27,13 +29,19 @@ export type Action =
     | { type: "add", podcast: Podcast }
     | { type: "audio", audio: PlayerAudio[] }
     | { type: "theme", backgroundColor: string, color: string }
-    | { type: 'failure', error: string };
+    | { type: 'failure', error: string }
+    | {type: 'close'};
+
 
 
 function reducer(state: State = InitialState, action: Action): State {
     let s: State = state
 
     switch (action.type) {
+
+        case "close":
+            s = {...s, page: 'grid'}
+            break;
         case "podcasts":
             s = { ...s, isLoading: false, podcasts: action.podcasts };
             break;
@@ -47,7 +55,14 @@ function reducer(state: State = InitialState, action: Action): State {
             s = { ...s, error: action.error };
             break;
         case "select":
-            s = { ...s, podcast: action.podcast };
+            if(s.podcast) {
+            if(s.podcast.id === action.podcast.id) 
+            {
+             s = { ...s, page: "player" };
+            }
+                       else s = { ...s, podcast: action.podcast, page: "player" };
+            }
+           else s = { ...s, podcast: action.podcast, page: "player" };
             break;
         default:
             console.log("Invalid Action -> \n", action);
@@ -66,7 +81,9 @@ const RootReducer = combineReducers({
    app: reducer
   });
   const createMStore = applyMiddleware(thunk)(createStore);
-export default () => {
+const fun = () => {
     let store =  createMStore(RootReducer);
     return { store };
 }
+
+export default fun;

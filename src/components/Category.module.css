@@ -1,0 +1,12 @@
+
+
+.category {
+    margin: 0px 12px 0px 0px !important;
+    padding: 2px;
+    cursor: pointer;
+}
+
+.active {
+color: rgb(198, 114, 25);
+
+}

@@ -1,7 +1,7 @@
-import axios, { AxiosError, AxiosInstance, AxiosResponse } from 'axios';
+import axios, { AxiosInstance, AxiosResponse } from 'axios';
 import { PlayerAudio, Podcast } from './cast';
 const Api = axios.create({
-    baseURL: "http://localhost:8080",
+    baseURL: "https://lionpods.herokuapp.com",
     headers: { 'Content-Type': 'application/json' },
 })
 export interface PodcastRequest {

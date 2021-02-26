@@ -2,22 +2,22 @@ import React, { useEffect, useState } from 'react';
 import getImagePalette from "image-palette-core";
 import Card from "@material-ui/core/Card";
 import CardContent from '@material-ui/core/CardContent';
-import CardMedia from '@material-ui/core/CardMedia';
-import IconButton from '@material-ui/core/IconButton';
+
+ 
 import Typography from '@material-ui/core/Typography';
 import { Podcast } from '../cast';
-import { makeStyles, useTheme } from '@material-ui/core/styles';
-import {  useDispatch } from 'react-redux';
-import { AppState, State, Action } from "../store"
-import { PodcastsApiInstance } from '../api';
-import { Dispatch } from 'redux'; 
+import { makeStyles } from '@material-ui/core/styles';
+import { useDispatch } from 'react-redux';
+import {   Action } from "../store"
+
+import { Dispatch } from 'redux';
 
 type PodcastViewProps = {
   podcast: Podcast;
   key?: string | number;
   children?: React.ReactNode;
-  onClick? : (podcast: Podcast,  color: string,
-  backgroundColor: string) => void;
+  onClick?: (podcast: Podcast, color: string,
+    backgroundColor: string) => void;
 }
 
 
@@ -28,7 +28,7 @@ const useStyles = makeStyles((theme) => ({
     margin: 20,
     'flex-direction': 'column',
     '-ms-flex-align': 'center',
-    'align-items': 'center', padding: '10px 0', cursor:'pointer',
+    'align-items': 'center', padding: '10px 0', cursor: 'pointer',
   },
   details: {
     display: 'flex',
@@ -41,7 +41,7 @@ const useStyles = makeStyles((theme) => ({
     paddingBottom: theme.spacing(1),
   }, cover: {
     maxWidth: 200, maxHeight: 200,
-
+    width: "90%"
   },
   playIcon: {
     height: 38,
@@ -49,44 +49,39 @@ const useStyles = makeStyles((theme) => ({
   }
 }));
 
-const PodcastView: React.FunctionComponent<PodcastViewProps> = ({ podcast, key, onClick= ()=>{} }) => {
+const PodcastView: React.FunctionComponent<PodcastViewProps> = ({ podcast, key, onClick = () => { } }) => {
   const classes = useStyles();
   const dispatch = useDispatch<Dispatch<Action>>()
   const [backgroundColor, setBackgroundColor] = useState("#ffffff");
   const [color, setColor] = useState("#000000");
-  const [altColor, setAltColor] = useState("#cccccc");
+//  const [altColor, setAltColor] = useState("#cccccc");
   useEffect(() => {
     const image = new Image();
     if (podcast.image) {
-    image.crossOrigin = "Anonymous"
+      image.crossOrigin = "Anonymous"
+//      console.log("lll")
       image.src = podcast.image;
       image.onload = () => {
         let colors = getImagePalette(image);
         setBackgroundColor(colors.backgroundColor);
         setColor(colors.color);
-        setAltColor(colors.alternativeColor);
+       // setAltColor(colors.alternativeColor);
       }
     }
 
-  }, []);
+  }, [podcast.image]);
 
   return (
     <Card className={classes.root} style={{ backgroundColor, color }} onClick={() => {
-   dispatch({type:"theme", backgroundColor, color })
-   dispatch({ type: "select", podcast})
-    } }>
+      dispatch({ type: "theme", backgroundColor, color })
+      dispatch({ type: "select", podcast })
+    }}>
       <img className={classes.cover} src={podcast.image} alt={podcast.title_original} />
       <CardContent>
         <Typography style={{ fontWeight: 'bold', textAlign: 'center' }}>
           {podcast.publisher_original}
-          
+
         </Typography>
-        {/*       <div >
-          <Typography style={{color: altColor, textAlign:'center'}}>
-          {podcast.title_original}
-          </Typography>
-           </div>
-          */}
 
       </CardContent>
     </Card>
