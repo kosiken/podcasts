@@ -34,7 +34,7 @@ const PodcastGrid: React.FunctionComponent = () => {
     const [sel, setSelected] = useState("All");
     const init = (): void => {
 
-        PodcastsApiInstance.getPodcasts({ page: 1, limit: 8 }).then(res => {
+        PodcastsApiInstance.getPodcasts({ page: 1, limit:8 }).then(res => {
             dispatch({ type: "podcasts", podcasts: res })
             // setLoad(false);
             setMError("")

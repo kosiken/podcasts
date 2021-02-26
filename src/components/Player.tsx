@@ -17,7 +17,7 @@ import {
 import Slider from '@material-ui/core/Slider';
 import Grid from '@material-ui/core/Grid';
 import CircularProgress from '@material-ui/core/CircularProgress';
-
+ import Backdrop from '@material-ui/core/Backdrop';
 import Episode from './Episode';
 import useDebounce from '../useDebounce'
 import {PodcastsApiInstance} from '../api';import { setTitle, durationToStr } from '../utils';
@@ -90,7 +90,10 @@ width:"30%"
     height: 38,
     width: 38,
   },
-
+    backdrop: {
+      zIndex: theme.zIndex.drawer + 1,
+   
+    },
   episode: {
     display: 'flex',
     alignItems: 'center',
@@ -138,7 +141,7 @@ const Player: React.FunctionComponent<PlayerProps> = () => {
  const {backgroundColor, color, podcast, page} = useSelector<AppState, State>((state)=> {
    return state.app
  })
-
+const [open, setOpen] = React.useState(false);
   const [isPlaying, setPlaying] = React.useState(false);
   const [shouldPlay, isSetting] = useDebounce(isPlaying,200)
   const [mIndex, setIndex] = React.useState(0);
@@ -207,25 +210,33 @@ const Player: React.FunctionComponent<PlayerProps> = () => {
   
   React.useEffect(() => {
     if (play) {
-     
+   //  alert("here")
       let r = ref.current
       if (r) {
         r.pause();
-      
+      setOpen(true)
         
         r.src = play.src;
         r.addEventListener("timeupdate", () => {
           let e = (Math.floor(r?.currentTime || 0))
-
+            
           setElapsed(e)
           if (play) setValue((e / play.duration) * 100)
+          
         });
+        r.play()
+         setPlaying(true)
         r.addEventListener("loadeddata", () => {
-          if (r && (r.readyState >= 2)) {r.play();
+       //  alert("loaded")
+          if (r && (r.readyState >= 2)) {
+         
+        //  r.play();  
+        setOpen(false)
           setPlaying(true)
           }
         });
       }
+      
     }
   }, [play])
   React.useEffect(() => {
@@ -307,6 +318,9 @@ console.log("88")
   }
   return (
     <div className={"main " + (page === "player" ? "" : "none") } style={{ backgroundColor, color }}>
+      <Backdrop className={classes.backdrop} open={open} >
+        <CircularProgress color="inherit" />
+      </Backdrop>
        <Helmet>
          <title>{play?.title || podcast?.title_original || "Podcasts" } </title>
        </Helmet>
@@ -318,10 +332,11 @@ console.log("88")
     
     }} > <Back/> </IconButton>
     </div >
-    <div style={{height:"75%"}}>
+    <div style={{height:"65%"}}>
 {renderPod()}
       </div>
-       <div>  <Typography style={{ fontWeight: 'bold', textAlign: 'center' }}>
+       <div style={{ position: 'absolute', bottom: 0, left: 0, width: '98%',
+padding: '10px 5px' }}>  <Typography style={{ fontWeight: 'bold', textAlign: 'center' }}>
         {setTitle(play?.title || "No episode", 35)}
       </Typography>
       {!!mError.length && (<Typography style={{ textAlign: 'center' }} variant="subtitle1">{mError}</Typography>)}
@@ -335,7 +350,7 @@ console.log("88")
         </IconButton>
         <IconButton style={{ color }} disabled={play?.src ? false : true} onClick={()=> {
           if(!ref.current||isSetting) return;
-
+            
           let r = ref.current;if(r.readyState <2) return;
           setPlaying(!shouldPlay)
           if(shouldPlay) {
@@ -366,7 +381,9 @@ console.log("88")
 
 
       </div> 
-      <Grid container spacing={2} style={{
+         <audio ref={ref}>
+Audio not suporteed
+      </audio>   <Grid container spacing={2} style={{
         alignItems: 'center'
       }}>
 
@@ -397,9 +414,7 @@ console.log("88")
         </Grid>
       </Grid>
        </div>
-      <audio ref={ref}>
 
-      </audio>
     </div>
   )
 
