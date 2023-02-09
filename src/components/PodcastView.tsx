@@ -54,13 +54,14 @@ const PodcastView: React.FunctionComponent<PodcastViewProps> = ({ podcast, key, 
   const dispatch = useDispatch<Dispatch<Action>>()
   const [backgroundColor, setBackgroundColor] = useState("#ffffff");
   const [color, setColor] = useState("#000000");
+  const pImage = 'https://api.letstalkmd.net/' + podcast.image;
 //  const [altColor, setAltColor] = useState("#cccccc");
   useEffect(() => {
     const image = new Image();
     if (podcast.image) {
       image.crossOrigin = "Anonymous"
 //      console.log("lll")
-      image.src = podcast.image;
+      image.src = pImage;
       image.onload = () => {
         let colors = getImagePalette(image);
         setBackgroundColor(colors.backgroundColor);
@@ -76,7 +77,7 @@ const PodcastView: React.FunctionComponent<PodcastViewProps> = ({ podcast, key, 
       dispatch({ type: "theme", backgroundColor, color })
       dispatch({ type: "select", podcast })
     }}>
-      <img className={classes.cover} src={podcast.image} alt={podcast.title_original} />
+      <img className={classes.cover} src={pImage} alt={podcast.title_original} />
       <CardContent>
         <Typography style={{ fontWeight: 'bold', textAlign: 'center' }}>
           {podcast.publisher_original}

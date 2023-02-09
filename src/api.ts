@@ -1,7 +1,7 @@
 import axios, { AxiosInstance, AxiosResponse } from 'axios';
 import { PlayerAudio, Podcast } from './cast';
 const Api = axios.create({
-    baseURL: "https://lionpods.herokuapp.com",
+    baseURL: "https://api.letstalkmd.net/api/v1",
     headers: { 'Content-Type': 'application/json' },
 })
 export interface PodcastRequest {
@@ -19,7 +19,7 @@ class PodcastsApi {
     async getPodcasts(options: PodcastRequest = {limit: 10, page: 0}): Promise<Podcast[]> {
         let ret: AxiosResponse<Podcast[]>;
         try {
-            ret = await this.api.get("/podcasts", {
+            ret = await this.api.get("open/load-podcasts", {
                 params: options
             })
             return ret.data;
@@ -53,7 +53,7 @@ class PodcastsApi {
     async getAudio(rss: string, limit = 10, page = 1): Promise<PlayerAudio[]> {
         let ret: AxiosResponse<PlayerAudio[]>;
         try {
-            ret = await this.api.get('/podcast', {
+            ret = await this.api.get('open/load-audio', {
                 params: {
                     rss, limit, page
                 }
