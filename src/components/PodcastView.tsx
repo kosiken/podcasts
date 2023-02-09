@@ -70,6 +70,7 @@ const PodcastView: React.FunctionComponent<PodcastViewProps> = ({ podcast, key, 
       }
     }
 
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [podcast.image]);
 
   return (
